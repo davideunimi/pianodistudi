@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Piano di Studi — Musica e Spettacolo</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0f;
+    --surface: #161618;
+    --border: #2a2a2e;
+    --text: #e8e6e0;
+    --muted: #6b6b72;
+    --accent-a: #d4a853;
+    --accent-b: #7b8fa1;
+    --accent-c: #8fad8a;
+    --accent-d: #c97a6e;
+    --accent-e: #9b7ec8;
+    --sel-a: rgba(212,168,83,0.15);
+    --sel-b: rgba(123,143,161,0.15);
+    --sel-c: rgba(143,173,138,0.15);
+    --sel-d: rgba(201,122,110,0.15);
+    --sel-e: rgba(155,126,200,0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  header {
+    padding: 48px 40px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 52px);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+
+  header h1 span {
+    color: var(--accent-a);
+  }
+
+  header p {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  /* ACTIONS BAR */
+  .actions-bar {
+    padding: 20px 40px;
+    background: #111112;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 18px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn:hover:not(.disabled) {
+    background: #202023;
+    border-color: var(--muted);
+  }
+
+  .btn.btn-accent {
+    background: var(--sel-a);
+    border-color: var(--accent-a);
+    color: var(--accent-a);
+  }
+  .btn.btn-accent:hover {
+    background: rgba(212,168,83,0.25);
+  }
+
+  /* TOTALS BAR */
+  .totals-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(14,14,15,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    padding: 0 40px;
+  }
+
+  .total-item {
+    padding: 14px 20px 14px 0;
+    margin-right: 32px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-right: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .total-item .val {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+    transition: color 0.3s;
+  }
+
+  .total-item .max {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .total-item.complete .val { color: var(--accent-c); }
+  .total-item.over .val { color: var(--accent-d); }
+
+  .total-cfu {
+    margin-left: auto;
+    padding: 14px 0;
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .total-cfu .big {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent-a);
+    transition: all 0.3s;
+  }
+
+  .total-cfu .of { color: var(--muted); font-size: 12px; }
+
+  /* PROGRESS */
+  .progress-wrap {
+    padding: 20px 40px;
+    background: var(--surface);
+  }
+
+  .progress-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-a), var(--accent-c));
+    border-radius: 4px;
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    width: 0%;
+  }
+
+  /* SECTIONS */
+  .main { padding: 32px 40px; }
+
+  .group {
+    margin-bottom: 40px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .group-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .group-letter {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+
+  .group-title {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .group-desc {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+    letter-spacing: 0.04em;
+  }
+
+  .group-counter {
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+    transition: color 0.3s;
+  }
+
+  /* Group color coding */
+  .group-fixed .group-letter { background: rgba(107,107,114,0.15); color: var(--muted); border: 1px solid var(--border); }
+  .group-fixed .group-counter { color: var(--muted); }
+  .group-a .group-letter { background: var(--sel-a); color: var(--accent-a); border: 1px solid rgba(212,168,83,0.3); }
+  .group-a .group-counter { color: var(--accent-a); }
+  .group-b .group-letter { background: var(--sel-b); color: var(--accent-b); border: 1px solid rgba(123,143,161,0.3); }
+  .group-b .group-counter { color: var(--accent-b); }
+  .group-c .group-letter { background: var(--sel-c); color: var(--accent-c); border: 1px solid rgba(143,173,138,0.3); }
+  .group-c .group-counter { color: var(--accent-c); }
+  .group-d .group-letter { background: var(--sel-d); color: var(--accent-d); border: 1px solid rgba(201,122,110,0.3); }
+  .group-d .group-counter { color: var(--accent-d); }
+
+  /* COURSES GRID */
+  .courses {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1px;
+    background: var(--border);
+  }
+
+  .course {
+    background: var(--bg);
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: background 0.2s, opacity 0.2s;
+    position: relative;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .course:hover:not(.disabled) { background: #131315; }
+
+  .course.selected-fixed { background: rgba(107,107,114,0.1); border-left: 3px solid var(--muted); }
+  .course.selected-a { background: var(--sel-a); border-left: 3px solid var(--accent-a); }
+  .course.selected-b { background: var(--sel-b); border-left: 3px solid var(--accent-b); }
+  .course.selected-c { background: var(--sel-c); border-left: 3px solid var(--accent-c); }
+  .course.selected-d { background: var(--sel-d); border-left: 3px solid var(--accent-d); }
+
+  .course.disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+    background: #09090a;
+  }
+
+  .course-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    line-height: 1.35;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .course-link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--muted);
+    text-underline-offset: 3px;
+    transition: text-decoration-color 0.2s;
+    text-transform: capitalize;
+  }
+  .course-link:hover {
+    text-decoration-color: var(--text);
+  }
+  
+  .edit-link-btn {
+    font-size: 12px;
+    cursor: pointer;
+    opacity: 0.4;
+    transition: opacity 0.2s;
+  }
+  .edit-link-btn:hover {
+    opacity: 1;
+  }
+
+  .course.selected-fixed .course-name { color: #fff; }
+  .course.selected-a .course-name { color: var(--accent-a); }
+  .course.selected-b .course-name { color: var(--accent-b); }
+  .course.selected-c .course-name { color: var(--accent-c); }
+  .course.selected-d .course-name { color: var(--accent-d); }
+
+  .course-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 4px;
+  }
+
+  .tag {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .tag.cfu { color: var(--text); border-color: var(--muted); }
+  .tag.en { color: var(--accent-b); border-color: rgba(123,143,161,0.4); }
+  .tag.sem1 { color: var(--accent-a); border-color: rgba(212,168,83,0.3); }
+  .tag.sem2 { color: var(--accent-c); border-color: rgba(143,173,138,0.3); }
+  .tag.tri1 { color: #e67e22; border-color: rgba(230,126,34,0.3); }
+  .tag.any { color: var(--muted); }
+  .tag.ssd { background: rgba(255,255,255,0.03); color: #bbb; border: none; font-family: monospace; font-size: 8px; }
+
+  /* OPZIONI AGGIUNTE (Freq, Anno, Nota) */
+  .course-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+    align-items: center;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding-top: 10px;
+  }
+  .course-options input[type="text"],
+  .course-options select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 10px;
+    padding: 4px 6px;
+    border-radius: 3px;
+  }
+  .course-options input[type="text"]:focus,
+  .course-options select:focus {
+    outline: none;
+    border-color: var(--muted);
+  }
+  .course-options input[type="text"] {
+    flex: 1;
+    min-width: 80px;
+  }
+  .course-options label {
+    font-size: 10px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+  }
+  .course-options input[type="checkbox"] {
+    accent-color: var(--accent-b);
+  }
+
+  .check-icon {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1.5px solid var(--border);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+
+  .course.selected-fixed .check-icon { background: var(--muted); border-color: var(--muted); color: #000; }
+  .course.selected-a .check-icon { background: var(--accent-a); border-color: var(--accent-a); color: #000; }
+  .course.selected-b .check-icon { background: var(--accent-b); border-color: var(--accent-b); color: #000; }
+  .course.selected-c .check-icon { background: var(--accent-c); border-color: var(--accent-c); color: #000; }
+  .course.selected-d .check-icon { background: var(--accent-d); border-color: var(--accent-d); color: #000; }
+  .course.disabled .check-icon { display: none; }
+
+  /* WARNING */
+  .warn {
+    font-size: 10px;
+    color: var(--accent-d);
+    padding: 10px 24px;
+    background: rgba(201,122,110,0.07);
+    border-top: 1px solid rgba(201,122,110,0.2);
+    letter-spacing: 0.05em;
+    display: none;
+  }
+
+  .warn.visible { display: block; }
+
+  /* Legend */
+  .legend {
+    padding: 0 40px 8px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .legend-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+
+  /* PRINT CONTAINER FOR PDF EXPORT */
+  #print-section {
+    display: none;
+  }
+
+  @media (max-width: 600px) {
+    header, .main { padding: 24px 20px; }
+    .totals-bar { padding: 0 20px; }
+    .progress-wrap { padding: 16px 20px; }
+    .legend { padding: 0 20px 8px; }
+    .courses { grid-template-columns: 1fr; }
+  }
+
+  @media print {
+    body {
+      background: #ffffff !important;
+      color: #000000 !important;
+      font-family: 'Times New Roman', Times, serif !important;
+      padding: 0 !important;
+    }
+    header, .actions-bar, .totals-bar, .progress-wrap, .legend, .main, input[type="file"] {
+      display: none !important;
+    }
+    #print-section {
+      display: block !important;
+      padding: 20mm;
+    }
+    .print-header {
+      border-bottom: 2px solid #000;
+      padding-bottom: 12px;
+      margin-bottom: 30px;
+    }
+    .print-header h1 {
+      font-size: 26pt;
+      margin-bottom: 4px;
+    }
+    .print-header p {
+      font-size: 12pt;
+      color: #444;
+      font-style: italic;
+    }
+    .print-group-title {
+      font-size: 14pt;
+      font-weight: bold;
+      margin-top: 25px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 3px;
+    }
+    .print-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 15px;
+    }
+    .print-table th, .print-table td {
+      padding: 6px 8px;
+      text-align: left;
+      font-size: 11pt;
+    }
+    .print-table th {
+      border-bottom: 1px solid #000;
+    }
+    .print-table td {
+      border-bottom: 1px solid #eee;
+    }
+    .print-total-summary {
+      margin-top: 40px;
+      text-align: right;
+      font-size: 14pt;
+      font-weight: bold;
+      border-top: 2px solid #000;
+      padding-top: 10px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Piano di <span>Studi</span></h1>
+    <p>Laurea Magistrale — Musica e Spettacolo (Offerta Aggiornata)</p>
+  </div>
+</header>
+
+<div class="actions-bar">
+  <button class="btn btn-accent" onclick="exportToPDF()">🖨 Esporta PDF Corsi Scelti</button>
+  <button class="btn" onclick="saveConfiguration()">💾 Salva Configurazione</button>
+  <button class="btn" onclick="document.getElementById('file-input').click()">📂 Carica Configurazione</button>
+  <input type="file" id="file-input" style="display:none" accept=".json" onchange="loadConfiguration(event)">
+</div>
+
+<div class="totals-bar">
+  <div class="total-item" id="ti-fixed">
+    <span class="label">Fissi / Obbligatori</span>
+    <span class="val" id="cnt-fixed">0</span><span class="max">/ 51 cfu</span>
+  </div>
+  <div class="total-item" id="ti-a">
+    <span class="label">Gruppo A</span>
+    <span class="val" id="cnt-a">0</span><span class="max">/ 9 cfu</span>
+  </div>
+  <div class="total-item" id="ti-b">
+    <span class="label">Gruppo B</span>
+    <span class="val" id="cnt-b">0</span><span class="max">/ 30 cfu</span>
+  </div>
+  <div class="total-item" id="ti-c">
+    <span class="label">Gruppo C</span>
+    <span class="val" id="cnt-c">0</span><span class="max">/ 18 cfu</span>
+  </div>
+  <div class="total-item" id="ti-d">
+    <span class="label">Gruppo D</span>
+    <span class="val" id="cnt-d">0</span><span class="max">/ 12 cfu</span>
+  </div>
+  <div class="total-cfu">
+    <span class="big" id="total-num">0</span>
+    <span class="of">/ 120 cfu complessivi</span>
+  </div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-track">
+    <div class="progress-fill" id="progress"></div>
+  </div>
+</div>
+
+<div class="legend">
+  <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Colori gruppi:</span>
+  <span class="legend-item"><span class="legend-dot" style="background:var(--muted)"></span> Fissi</span>
+  <span class="legend-item"><span class="legend-dot" style="background:var(--accent-a)"></span> A</span>
+  <span class="legend-item"><span class="legend-dot" style="background:var(--accent-b)"></span> B</span>
+  <span class="legend-item"><span class="legend-dot" style="background:var(--accent-c)"></span> C</span>
+  <span class="legend-item"><span class="legend-dot" style="background:var(--accent-d)"></span> D</span>
+</div>
+
+<div class="main">
+
+  <div class="group group-fixed" id="group-fixed">
+    <div class="group-header">
+      <div class="group-label">
+        <div class="group-letter">✓</div>
+        <div>
+          <div class="group-title">Obbligatori e attività fisse</div>
+          <div class="group-desc">Seleziona manualmente per aggiungerli al totale (51 CFU totali)</div>
+        </div>
+      </div>
+      <div class="group-counter"><span id="cnt-fixed-g">0</span> / 51 cfu</div>
+    </div>
+    <div class="courses" id="courses-fixed"></div>
+    <div style="padding:10px 24px;font-size:10px;color:var(--muted);letter-spacing:.05em;background:var(--surface);border-top:1px solid var(--border);">
+      ⚠ Nota studenti stranieri: 3 CFU laboratoriali sono destinati al conseguimento del livello B2 di lingua italiana. Tesi da concordare entro fine primo anno.
+    </div>
+  </div>
+
+  <div class="group group-a" id="group-a">
+    <div class="group-header">
+      <div class="group-label">
+        <div class="group-letter">A</div>
+        <div>
+          <div class="group-title">Gruppo A — 1 disciplina</div>
+          <div class="group-desc">Scegli esattamente 1 esame da 9 CFU</div>
+        </div>
+      </div>
+      <div class="group-counter"><span id="cnt-a-g">0</span> / 9 cfu</div>
+    </div>
+    <div class="courses" id="courses-a"></div>
+    <div class="warn" id="warn-a">⚠ Errore</div>
+  </div>
+
+  <div class="group group-b" id="group-b">
+    <div class="group-header">
+      <div class="group-label">
+        <div class="group-letter">B</div>
+        <div>
+          <div class="group-title">Gruppo B — 5 discipline</div>
+          <div class="group-desc">Scegli esattamente 5 esami da 6 CFU ciascuno (30 CFU totali)</div>
+        </div>
+      </div>
+      <div class="group-counter"><span id="cnt-b-g">0</span> / 30 cfu</div>
+    </div>
+    <div class="courses" id="courses-b"></div>
+    <div class="warn" id="warn-b">⚠ Errore</div>
+  </div>
+
+  <div class="group group-c" id="group-c">
+    <div class="group-header">
+      <div class="group-label">
+        <div class="group-letter">C</div>
+        <div>
+          <div class="group-title">Gruppo C — 3 discipline</div>
+          <div class="group-desc">Scegli esattamente 3 esami da 6 CFU ciascuno (18 CFU totali)</div>
+        </div>
+      </div>
+      <div class="group-counter"><span id="cnt-c-g">0</span> / 18 cfu</div>
+    </div>
+    <div class="courses" id="courses-c"></div>
+    <div class="warn" id="warn-c">⚠ Errore</div>
+  </div>
+
+  <div class="group group-d" id="group-d">
+    <div class="group-header">
+      <div class="group-label">
+        <div class="group-letter">D</div>
+        <div>
+          <div class="group-title">Gruppo D — 2 discipline</div>
+          <div class="group-desc">Scegli 2 esami (6+6 CFU) non già scelti nei gruppi precedenti</div>
+        </div>
+      </div>
+      <div class="group-counter"><span id="cnt-d-g">0</span> / 12 cfu</div>
+    </div>
+    <div class="courses" id="courses-d"></div>
+    <div class="warn" id="warn-d">⚠ Errore</div>
+  </div>
+
+</div>
+
+<div id="print-section"></div>
+
+<script>
+const data = {
+  fixed: [
+    { name: "Accertamento lingua inglese B2", cfu: 3, lang: "en", sem: "—", ssd: "NN" },
+    { name: "Attività laboratoriali e seminariali", cfu: 6, lang: "it", sem: "—", ssd: "—" },
+    { name: "Stage in ambiti musica/spettacolo", cfu: 6, lang: "it", sem: "—", ssd: "—" },
+    { name: "Insegnamento a scelta libera (Altro Ateneo / Biennalizzazione)", cfu: 9, lang: "it", sem: "—", ssd: "—" },
+    { name: "Prova finale (Tesi Magistrale)", cfu: 27, lang: "it", sem: "—", ssd: "NN" }
+  ],
+  a: [
+    { name: "British and irish theatre and performance", cfu: 9, lang: "en", sem: "S1", ssd: "ANGL-01/A" },
+    { name: "Estetica dei processi creativi", cfu: 9, lang: "it", sem: "S1", ssd: "PHIL-04/A" },
+    { name: "Lingua italiana e testi per musica", cfu: 9, lang: "it", sem: "S1", ssd: "LIFI-01/A" },
+    { name: "Teatro spagnolo", cfu: 9, lang: "it", sem: "S1", ssd: "SPAN-01/A" },
+    { name: "Antropologia sociale", cfu: 9, lang: "it", sem: "S2", ssd: "SDEA-01/A" },
+    { name: "Digital cultures and communication research", cfu: 9, lang: "en", sem: "S2", ssd: "GSPS-06/A" },
+    { name: "Estetica dei nuovi media", cfu: 9, lang: "it", sem: "S2", ssd: "PHIL-04/A" },
+    { name: "Estetica del performativo", cfu: 9, lang: "it", sem: "S2", ssd: "PHIL-04/A" },
+    { name: "Teatro francese", cfu: 9, lang: "it", sem: "S2", ssd: "FRAN-01/A" },
+    { name: "Teatro tedesco", cfu: 9, lang: "it", sem: "S2", ssd: "GERM-01/B" },
+    { name: "Comunicazione crossmediale", cfu: 9, lang: "it", sem: "T2", ssd: "GSPS-06/A" }
+  ],
+  b: [
+    { name: "Iconografia musicale", cfu: 6, lang: "it", sem: "—", ssd: "PEMM-01/C" },
+    { name: "Drammaturgie sonore nello spettacolo teatrale e multimediale", cfu: 6, lang: "it", sem: "S1", ssd: "PEMM-01/C" },
+    { name: "Methodologies for music education", cfu: 6, lang: "en", sem: "S1", ssd: "PEMM-01/C" },
+    { name: "Storia della notazione musicale", cfu: 6, lang: "it", sem: "S1", ssd: "PEMM-01/C" },
+    { name: "Storia e metodi della critica musicale", cfu: 6, lang: "it", sem: "S1", ssd: "PEMM-01/C" },
+    { name: "Antropologia della performance musicale", cfu: 6, lang: "it", sem: "S2", ssd: "PEMM-01/D" },
+    { name: "Filologia musicale", cfu: 6, lang: "it", sem: "S2", ssd: "PEMM-01/C" },
+    { name: "Hearing musics in early modern europe and its colonies", cfu: 6, lang: "en", sem: "S2", ssd: "PEMM-01/C" },
+    { name: "Organologia transculturale", cfu: 6, lang: "it", sem: "S2", ssd: "PEMM-01/D" },
+    { name: "Teoria e metodi della musica nei media", cfu: 6, lang: "it", sem: "S2", ssd: "PEMM-01/C" },
+    { name: "Analisi compositiva-metodologie", cfu: 6, lang: "it", sem: "—", ssd: "PEMM-01/C" },
+    { name: "Sociologia della musica", cfu: 6, lang: "it", sem: "—", ssd: "PEMM-01/C" },
+    { name: "Storia della musica elettroacustica", cfu: 6, lang: "it", sem: "—", ssd: "PEMM-01/C" },
+    { name: "Strumentazione e orchestrazione", cfu: 6, lang: "it", sem: "—", ssd: "PEMM-01/C" },
+    { name: "Tecniche e linguaggi compositivi contemporanei", cfu: 6, lang: "it", sem: "—", ssd: "PEMM-01/C" }
+  ],
+  c: [
+    { name: "Storia della danza", cfu: 6, lang: "it", sem: "S1", ssd: "PEMM-01/A" },
+    { name: "Teatro italiano contemporaneo", cfu: 6, lang: "it", sem: "S1", ssd: "PEMM-01/A" },
+    { name: "Teorie dell'immagine in movimento", cfu: 6, lang: "it", sem: "S1", ssd: "PEMM-01/B" },
+    { name: "Cinema e studi culturali", cfu: 6, lang: "it", sem: "S2", ssd: "PEMM-01/B" },
+    { name: "Cultura visuale", cfu: 6, lang: "it", sem: "S2", ssd: "PEMM-01/B" },
+    { name: "Drammaturgia multimediale", cfu: 6, lang: "it", sem: "S2", ssd: "PEMM-01/A" },
+    { name: "Film production and media industries", cfu: 6, lang: "en", sem: "S2", ssd: "PEMM-01/B" }
+  ],
+  d: [
+    { name: "Iconografia musicale", cfu: 6, lang: "it", sem: "—", ssd: "PEMM-01/C" },
+    { name: "Diplomatica", cfu: 9, lang: "it", sem: "S1", ssd: "HIST-04/D" },
+    { name: "Drammaturgie sonore nello spettacolo teatrale e multimediale", cfu: 6, lang: "it", sem: "S1", ssd: "PEMM-01/C" },
+    { name: "Iconografia delle arti performative giapponesi", cfu: 6, lang: "it", sem: "S1", ssd: "ASIA-01/E" },
+    { name: "Media theory and a.i.", cfu: 6, lang: "en", sem: "S1", ssd: "PEMM-01/B PHIL-04/A" },
+    { name: "Methodologies for music education", cfu: 6, lang: "en", sem: "S1", ssd: "PEMM-01/C" },
+    { name: "Storia della danza", cfu: 6, lang: "it", sem: "S1", ssd: "PEMM-01/A" },
+    { name: "Storia della notazione musicale", cfu: 6, lang: "it", sem: "S1", ssd: "PEMM-01/C" },
+    { name: "Storia e metodi della critica musicale", cfu: 6, lang: "it", sem: "S1", ssd: "PEMM-01/C" },
+    { name: "Teatro italiano contemporaneo", cfu: 6, lang: "it", sem: "S1", ssd: "PEMM-01/A" },
+    { name: "Teorie dell'immagine in movimento", cfu: 6, lang: "it", sem: "S1", ssd: "PEMM-01/B" },
+    { name: "Antropologia culturale", cfu: 9, lang: "it", sem: "S2", ssd: "SDEA-01/A" },
+    { name: "Antropologia della performance musicale", cfu: 6, lang: "it", sem: "S2", ssd: "PEMM-01/D" },
+    { name: "Cinema e studi culturali", cfu: 6, lang: "it", sem: "S2", ssd: "PEMM-01/B" },
+    { name: "Cultura visuale", cfu: 6, lang: "it", sem: "S2", ssd: "PEMM-01/B" },
+    { name: "Digital cultures and communication research", cfu: 9, lang: "en", sem: "S2", ssd: "GSPS-06/A" },
+    { name: "Drammaturgia multimediale", cfu: 6, lang: "it", sem: "S2", ssd: "PEMM-01/A" },
+    { name: "Editoria multimediale", cfu: 6, lang: "it", sem: "S2", ssd: "GSPS-06/A" },
+    { name: "Estetica dei nuovi media", cfu: 9, lang: "it", sem: "S2", ssd: "PHIL-04/A" },
+    { name: "Film production and media industries", cfu: 6, lang: "en", sem: "S2", ssd: "PEMM-01/B" },
+    { name: "Filologia musicale", cfu: 6, lang: "it", sem: "S2", ssd: "PEMM-01/C" },
+    { name: "Fotografia e nuovi media per l'arte contemporanea", cfu: 9, lang: "it", sem: "S2", ssd: "ARTE-01/C" },
+    { name: "Hearing musics in early modern europe and its colonies", cfu: 6, lang: "en", sem: "S2", ssd: "PEMM-01/C" },
+    { name: "Intelligenza artificiale per la musica", cfu: 6, lang: "it", sem: "S2", ssd: "INFO-01/A" },
+    { name: "Organologia transculturale", cfu: 6, lang: "it", sem: "S2", ssd: "PEMM-01/D" },
+    { name: "Psicologia sociale e ambientale", cfu: 9, lang: "it", sem: "S2", ssd: "PSIC-03/A" },
+    { name: "Storia della radio e della televisione", cfu: 6, lang: "it", sem: "S2", ssd: "HIST-03/A" },
+    { name: "Storia sociale dello spettacolo", cfu: 6, lang: "it", sem: "S2", ssd: "HIST-03/A" },
+    { name: "Teoria e metodi della musica nei media", cfu: 6, lang: "it", sem: "S2", ssd: "PEMM-01/C" },
+    { name: "Analisi compositiva-metodologie", cfu: 6, lang: "it", sem: "—", ssd: "PEMM-01/C" },
+    { name: "Sociologia della musica", cfu: 6, lang: "it", sem: "—", ssd: "PEMM-01/C" },
+    { name: "Storia della musica elettroacustica", cfu: 6, lang: "it", sem: "—", ssd: "PEMM-01/C" },
+    { name: "Strumentazione e orchestrazione", cfu: 6, lang: "it", sem: "—", ssd: "PEMM-01/C" },
+    { name: "Tecniche e linguaggi compositivi contemporanei", cfu: 6, lang: "it", sem: "—", ssd: "PEMM-01/C" }
+  ]
+};
+
+const maxes = { fixed: 5, a: 1, b: 5, c: 3, d: 2 };
+const selected = { fixed: new Set(), a: new Set(), b: new Set(), c: new Set(), d: new Set() };
+const userData = { fixed: {}, a: {}, b: {}, c: {}, d: {} }; 
+
+function semTag(s) {
+  if (s === 'S1') return 'sem1';
+  if (s === 'S2') return 'sem2';
+  if (s === 'T2') return 'tri1';
+  return 'any';
+}
+
+function generateUnimiSlug(courseName) {
+  return courseName.toLowerCase()
+    .replace(/'/g, '') // rimuove apostrofi es. dell'immagine -> dellimmagine
+    .replace(/[^a-z0-9]+/g, '-') // sostituisce spazi e altri caratteri con un trattino
+    .replace(/(^-|-$)/g, ''); // rimuove eventuali trattini iniziali o finali
+}
+
+function renderGroup(group) {
+  const container = document.getElementById(`courses-${group}`);
+  container.innerHTML = '';
+  data[group].forEach((course, i) => {
+    
+    if (!userData[group][i]) {
+      userData[group][i] = { freq: false, year: 1, note: '', customUrl: '' };
+    }
+    const u = userData[group][i];
+
+    const div = document.createElement('div');
+    div.className = 'course';
+    div.id = `course-${group}-${i}`;
+    div.dataset.group = group;
+    div.dataset.idx = i;
+    
+    if (selected[group].has(i)) {
+      div.classList.add(`selected-${group}`);
+    }
+
+    const semCls = semTag(course.sem);
+    const displaySem = course.sem === 'T2' ? '2° Trim.' : course.sem;
+    
+    // Logica per URL: usa customUrl se impostato dall'utente, altrimenti genera in automatico
+    let finalUrl = u.customUrl;
+    if (!finalUrl) {
+      finalUrl = `https://www.unimi.it/it/corsi/insegnamenti-dei-corsi-di-laurea/2026/${generateUnimiSlug(course.name)}`;
+    }
+    
+    div.innerHTML = `
+      <div class="check-icon">${selected[group].has(i) ? '✓' : ''}</div>
+      <div>
+        <div class="course-name">
+          <a href="${finalUrl}" target="_blank" class="course-link">${course.name}</a>
+          <span class="edit-link-btn" title="Modifica Link" onclick="editCourseUrl('${group}', ${i})">✏️</span>
+        </div>
+        <div class="course-meta">
+          <span class="tag cfu">${course.cfu} CFU</span>
+          ${course.lang === 'en' ? '<span class="tag en">EN</span>' : ''}
+          ${course.sem !== '—' ? `<span class="tag ${semCls}">${displaySem}</span>` : ''}
+          <span class="tag ssd">${course.ssd}</span>
+        </div>
+      </div>
+      
+      <div class="course-options">
+        <label><input type="checkbox" class="opt-freq" ${u.freq ? 'checked' : ''}> Freq.</label>
+        <select class="opt-year">
+          <option value="1" ${u.year == 1 ? 'selected' : ''}>Anno 1</option>
+          <option value="2" ${u.year == 2 ? 'selected' : ''}>Anno 2</option>
+          <option value="3" ${u.year == 3 ? 'selected' : ''}>Anno 3</option>
+          <option value="4" ${u.year == 4 ? 'selected' : ''}>Anno 4</option>
+        </select>
+        <input type="text" class="opt-note" placeholder="Inserisci nota..." value="${u.note}">
+      </div>
+    `;
+    
+    // Gestione del click per ignorare interazioni con i campi, il link o il pulsante di edit
+    div.addEventListener('click', (e) => {
+      if (['INPUT', 'SELECT', 'OPTION', 'A', 'LABEL'].includes(e.target.tagName) || e.target.classList.contains('edit-link-btn')) return;
+      toggle(group, i);
+    });
+
+    div.querySelector('.opt-freq').addEventListener('change', (e) => {
+      userData[group][i].freq = e.target.checked;
+    });
+    div.querySelector('.opt-year').addEventListener('change', (e) => {
+      userData[group][i].year = e.target.value;
+    });
+    div.querySelector('.opt-note').addEventListener('input', (e) => {
+      userData[group][i].note = e.target.value;
+    });
+
+    container.appendChild(div);
+  });
+}
+
+// Funzione globale esposta per modificare il link manualmente
+window.editCourseUrl = function(group, i) {
+  const course = data[group][i];
+  const currentUrl = userData[group][i].customUrl || `https://www.unimi.it/it/corsi/insegnamenti-dei-corsi-di-laurea/2026/${generateUnimiSlug(course.name)}`;
+  
+  const newUrl = prompt(`Inserisci il link corretto per l'insegnamento "${course.name}":`, currentUrl);
+  
+  if (newUrl !== null) { // se non ha cliccato "Annulla"
+    userData[group][i].customUrl = newUrl.trim();
+    renderGroup(group);
+  }
+};
+
+function isCourseSelectedInGroup(name, group) {
+  let found = false;
+  selected[group].forEach(idx => {
+    if (data[group][idx].name.toLowerCase() === name.toLowerCase()) {
+      found = true;
+    }
+  });
+  return found;
+}
+
+function isSelectedInABC(name) {
+  return isCourseSelectedInGroup(name, 'a') || isCourseSelectedInGroup(name, 'b') || isCourseSelectedInGroup(name, 'c');
+}
+
+function updateDisabledStates() {
+  data.d.forEach((course, i) => {
+    const el = document.getElementById(`course-d-${i}`);
+    if (!el) return;
+    if (!selected.d.has(i) && isSelectedInABC(course.name)) {
+      el.classList.add('disabled');
+    } else {
+      el.classList.remove('disabled');
+    }
+  });
+
+  ['a', 'b', 'c'].forEach(g => {
+    data[g].forEach((course, i) => {
+      const el = document.getElementById(`course-${g}-${i}`);
+      if (!el) return;
+      if (!selected[g].has(i) && isCourseSelectedInGroup(course.name, 'd')) {
+        el.classList.add('disabled');
+      } else {
+        el.classList.remove('disabled');
+      }
+    });
+  });
+}
+
+function toggle(group, idx) {
+  const el = document.getElementById(`course-${group}-${idx}`);
+  if (!el || el.classList.contains('disabled')) return;
+
+  const isSelected = selected[group].has(idx);
+  const warn = document.getElementById(`warn-${group}`);
+
+  if (!isSelected) {
+    if (selected[group].size >= maxes[group]) {
+      const gLabel = group === 'fixed' ? 'le attività fisse' : `il gruppo ${group.toUpperCase()}`;
+      if (warn) {
+        warn.textContent = `⚠ Limite raggiunto per ${gLabel} (max ${maxes[group]} scelte)`;
+        warn.classList.add('visible');
+        setTimeout(() => warn.classList.remove('visible'), 3000);
+      }
+      return;
+    }
+  }
+
+  if (isSelected) {
+    selected[group].delete(idx);
+    el.classList.remove(`selected-${group}`);
+    el.querySelector('.check-icon').textContent = '';
+  } else {
+    selected[group].add(idx);
+    el.classList.add(`selected-${group}`);
+    el.querySelector('.check-icon').textContent = '✓';
+  }
+  
+  updateDisabledStates();
+  update();
+}
+
+function calcCFU(group) {
+  let total = 0;
+  selected[group].forEach(i => total += data[group][i].cfu);
+  return total;
+}
+
+function update() {
+  const cfuFixed = calcCFU('fixed');
+  const cfuA = calcCFU('a');
+  const cfuB = calcCFU('b');
+  const cfuC = calcCFU('c');
+  const cfuD = calcCFU('d');
+
+  document.getElementById('cnt-fixed').textContent = cfuFixed;
+  document.getElementById('cnt-a').textContent = cfuA;
+  document.getElementById('cnt-b').textContent = cfuB;
+  document.getElementById('cnt-c').textContent = cfuC;
+  document.getElementById('cnt-d').textContent = cfuD;
+  
+  document.getElementById('cnt-fixed-g').textContent = cfuFixed;
+  document.getElementById('cnt-a-g').textContent = cfuA;
+  document.getElementById('cnt-b-g').textContent = cfuB;
+  document.getElementById('cnt-c-g').textContent = cfuC;
+  document.getElementById('cnt-d-g').textContent = cfuD;
+
+  const groups = [
+    { id: 'ti-fixed', val: cfuFixed, max: 51 },
+    { id: 'ti-a', val: cfuA, max: 9 },
+    { id: 'ti-b', val: cfuB, max: 30 },
+    { id: 'ti-c', val: cfuC, max: 18 },
+    { id: 'ti-d', val: cfuD, max: 12 },
+  ];
+  
+  groups.forEach(g => {
+    const el = document.getElementById(g.id);
+    el.classList.remove('complete', 'over');
+    if (g.val >= g.max) el.classList.add('complete');
+    if (g.val > g.max) el.classList.add('over');
+  });
+
+  const totalCFU = cfuFixed + cfuA + cfuB + cfuC + cfuD;
+  document.getElementById('total-num').textContent = totalCFU;
+
+  const pct = Math.min(100, (totalCFU / 120) * 100);
+  document.getElementById('progress').style.width = pct + '%';
+}
+
+function saveConfiguration() {
+  const exportState = {
+    fixed: Array.from(selected.fixed),
+    a: Array.from(selected.a),
+    b: Array.from(selected.b),
+    c: Array.from(selected.c),
+    d: Array.from(selected.d),
+    userData: userData
+  };
+  
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportState));
+  const downloadAnchorNode = document.createElement('a');
+  downloadAnchorNode.setAttribute("href", dataStr);
+  downloadAnchorNode.setAttribute("download", "piano_di_studi_salvato.json");
+  document.body.appendChild(downloadAnchorNode);
+  downloadAnchorNode.click();
+  downloadAnchorNode.remove();
+}
+
+function loadConfiguration(event) {
+  const fileReader = new FileReader();
+  fileReader.onload = function(e) {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      
+      if (parsed.userData) {
+        ['fixed', 'a', 'b', 'c', 'd'].forEach(g => {
+          userData[g] = parsed.userData[g] || {};
+        });
+      }
+
+      ['fixed', 'a', 'b', 'c', 'd'].forEach(g => {
+        selected[g].clear();
+      });
+      
+      ['fixed', 'a', 'b', 'c', 'd'].forEach(renderGroup);
+
+      ['fixed', 'a', 'b', 'c', 'd'].forEach(g => {
+        if (parsed[g] && Array.isArray(parsed[g])) {
+          parsed[g].forEach(idx => {
+            selected[g].add(idx);
+            const el = document.getElementById(`course-${g}-${idx}`);
+            if(el) {
+              el.classList.add(`selected-${g}`);
+              el.querySelector('.check-icon').textContent = '✓';
+            }
+          });
+        }
+      });
+
+      updateDisabledStates();
+      update();
+      alert("Piano di studi caricato e ripristinato con successo!");
+    } catch (err) {
+      alert("Errore nel caricamento del file. Assicurati che sia un file di configurazione valido.");
+    }
+  };
+  fileReader.readAsText(event.target.files[0]);
+}
+
+function exportToPDF() {
+  const printSection = document.getElementById('print-section');
+  let htmlContent = `
+    <div class="print-header">
+      <h1>Piano di Studi — Musica e Spettacolo</h1>
+      <p>Report Ufficiale dei Corsi Selezionati — Generato il ${new Date().toLocaleDateString('it-IT')}</p>
+    </div>
+  `;
+
+  const groupNames = {
+    fixed: "Obbligatori e attività fisse",
+    a: "Gruppo A",
+    b: "Gruppo B",
+    c: "Gruppo C",
+    d: "Gruppo D"
+  };
+
+  let totalCfuPrinted = 0;
+  let coursesFound = false;
+
+  ['fixed', 'a', 'b', 'c', 'd'].forEach(g => {
+    if (selected[g].size > 0) {
+      coursesFound = true;
+      htmlContent += `<div class="print-group-title">${groupNames[g]}</div>`;
+      htmlContent += `
+        <table class="print-table">
+          <thead>
+            <tr>
+              <th style="width: 55%;">Insegnamento</th>
+              <th style="width: 15%;">Semestre</th>
+              <th style="width: 20%;">SSD</th>
+              <th style="width: 10%; text-align: right;">CFU</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      
+      selected[g].forEach(idx => {
+        const c = data[g][idx];
+        const u = userData[g][idx] || { freq: false, year: 1, note: '' };
+        totalCfuPrinted += c.cfu;
+        const displaySem = c.sem === 'T2' ? '2° Trim.' : c.sem;
+        
+        const details = `[${u.freq ? 'Frequentante' : 'Non frequentante'} | Anno: ${u.year}] ${u.note ? ' — Note: ' + u.note : ''}`;
+        
+        htmlContent += `
+          <tr>
+            <td>
+              <div style="text-transform: capitalize; font-weight: bold;">${c.name} ${c.lang === 'en' ? '(EN)' : ''}</div>
+              <div style="font-size: 9pt; font-weight: normal; color: #555; margin-top: 4px;">${details}</div>
+            </td>
+            <td>${displaySem}</td>
+            <td>${c.ssd}</td>
+            <td style="text-align: right;">${c.cfu}</td>
+          </tr>
+        `;
+      });
+
+      htmlContent += `</tbody></table>`;
+    }
+  });
+
+  if (!coursesFound) {
+    alert("Non hai selezionato nessun corso da esportare! Seleziona almeno un insegnamento.");
+    return;
+  }
+
+  htmlContent += `
+    <div class="print-total-summary">
+      Totale Crediti Formativi Universitari inseriti: ${totalCfuPrinted} / 120 CFU
+    </div>
+  `;
+
+  printSection.innerHTML = htmlContent;
+  window.print();
+}
+
+['fixed', 'a', 'b', 'c', 'd'].forEach(renderGroup);
+updateDisabledStates();
+update();
+</script>
+</body>
+</html>
